@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: deudas-servicios-api
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      # Credenciales (configurar en Easypanel)
+      - BROWSER_USE_API_KEY=${BROWSER_USE_API_KEY}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+
+      # Configuración API
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+
+      # Browser-Use Settings
+      - BROWSER_USE_CLOUD=true
+      - MAX_FAILURES=3
+      - STEP_TIMEOUT=30
+      - MAX_ACTIONS_PER_STEP=5
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    # Recursos (opcional - ajustar según necesidad)
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G

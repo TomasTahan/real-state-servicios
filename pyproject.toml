@@ -1,0 +1,15 @@
+[project]
+name = "real-state-servicios"
+version = "0.1.0"
+description = "Sistema de consulta automática de deudas de servicios básicos para propiedades"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "browser-use>=0.9.7",
+    "fastapi>=0.115.0",
+    "uvicorn>=0.32.0",
+    "supabase>=2.9.0",
+    "pydantic>=2.9.0",
+    "pydantic-settings>=2.6.0",
+    "python-dotenv>=1.0.0",
+]

@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv/
+
+# UV
+.uv/
+
+# Environment
+.env
+.env.local
+
+# Logs
+*.log
+cron_deudas.log
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test files
+test_*.py
+
+# Documentation (opcional, si quieres incluirla descomenta)
+# *.md
+
+# OS
+.DS_Store
+Thumbs.db
