@@ -36,7 +36,12 @@ class SupabaseClient:
         metadata: Optional[Dict] = None,
         error: Optional[str] = None
     ) -> Dict:
-        """Guarda el resultado de una consulta de deuda"""
+        """
+        Guarda el resultado de una consulta de deuda
+
+        Returns:
+            Dict con consulta_id y guardado status
+        """
         data = {
             "servicio_id": servicio_id,
             "propiedad_id": propiedad_id,
@@ -46,7 +51,14 @@ class SupabaseClient:
             "error": error
         }
         response = self.client.table("consultas_deuda").insert(data).execute()
-        return response.data[0] if response.data else None
+
+        # Retornar el consulta_id generado
+        if response.data and len(response.data) > 0:
+            return {
+                "consulta_id": response.data[0].get("consulta_id"),
+                "guardado": True
+            }
+        return {"consulta_id": None, "guardado": False}
 
     def get_ultimas_consultas_propiedad(self, propiedad_id: int, limit: int = 10) -> List[Dict]:
         """Obtiene las últimas consultas de deuda de una propiedad"""
@@ -56,8 +68,8 @@ class SupabaseClient:
         return response.data
 
     def get_servicios_por_ids(self, servicio_ids: List[int]) -> List[Dict]:
-        """Obtiene información de servicios por sus IDs"""
-        response = self.client.table("servicios").select("*").in_("servicio_id", servicio_ids).execute()
+        """Obtiene información de servicios por sus IDs (solo activos)"""
+        response = self.client.table("servicios").select("*").in_("servicio_id", servicio_ids).eq("activo", True).execute()
         return response.data
 
 

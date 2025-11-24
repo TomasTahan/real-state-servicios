@@ -39,12 +39,32 @@ class BatchProcessor:
             empresa_info = db.get_empresa_servicio(servicio["compania"])
 
             if not empresa_info:
+                error_msg = f"Empresa no registrada: {servicio['compania']}"
                 logger.warning(f"No se encontró información para la empresa: {servicio['compania']}")
+
+                # Guardar error en BD
+                try:
+                    consulta_guardada = db.guardar_consulta_deuda(
+                        servicio_id=servicio["servicio_id"],
+                        propiedad_id=servicio["propiedad_id"],
+                        monto_deuda=0,
+                        metadata={"empresa": servicio["compania"], "tipo": servicio.get("tipo_servicio")},
+                        error=error_msg
+                    )
+                    consulta_id = consulta_guardada.get("consulta_id")
+                except Exception as db_error:
+                    logger.error(f"Error guardando consulta fallida en BD: {str(db_error)}")
+                    consulta_id = None
+
                 return {
                     "servicio_id": servicio["servicio_id"],
                     "propiedad_id": servicio["propiedad_id"],
+                    "empresa": servicio["compania"],
+                    "tipo_servicio": servicio.get("tipo_servicio"),
+                    "deuda": 0,
                     "exito": False,
-                    "error": f"Empresa no registrada: {servicio['compania']}"
+                    "error": error_msg,
+                    "consulta_id": consulta_id
                 }
 
             # Generar prompt
@@ -55,8 +75,8 @@ class BatchProcessor:
             # Ejecutar agente
             resultado = await runner.consultar_deuda(prompt)
 
-            # Guardar en base de datos
-            db.guardar_consulta_deuda(
+            # Guardar en base de datos y capturar consulta_id
+            consulta_guardada = db.guardar_consulta_deuda(
                 servicio_id=servicio["servicio_id"],
                 propiedad_id=servicio["propiedad_id"],
                 monto_deuda=resultado["deuda"],
@@ -64,24 +84,45 @@ class BatchProcessor:
                 error=resultado["error"]
             )
 
-            logger.info(f"Servicio {servicio['servicio_id']}: Deuda = ${resultado['deuda']}")
+            logger.info(f"Servicio {servicio['servicio_id']}: Deuda = ${resultado['deuda']}, Consulta ID: {consulta_guardada.get('consulta_id')}")
 
             return {
                 "servicio_id": servicio["servicio_id"],
                 "propiedad_id": servicio["propiedad_id"],
                 "empresa": servicio["compania"],
+                "tipo_servicio": servicio["tipo_servicio"],
                 "deuda": resultado["deuda"],
                 "exito": resultado["error"] is None,
-                "error": resultado["error"]
+                "error": resultado["error"],
+                "consulta_id": consulta_guardada.get("consulta_id")
             }
 
         except Exception as e:
             logger.error(f"Error procesando servicio {servicio['servicio_id']}: {str(e)}")
+
+            # Intentar guardar el error en base de datos
+            try:
+                consulta_guardada = db.guardar_consulta_deuda(
+                    servicio_id=servicio["servicio_id"],
+                    propiedad_id=servicio["propiedad_id"],
+                    monto_deuda=0,
+                    metadata={"empresa": servicio.get("compania"), "tipo": servicio.get("tipo_servicio")},
+                    error=str(e)
+                )
+                consulta_id = consulta_guardada.get("consulta_id")
+            except Exception as db_error:
+                logger.error(f"Error guardando consulta fallida en BD: {str(db_error)}")
+                consulta_id = None
+
             return {
                 "servicio_id": servicio["servicio_id"],
                 "propiedad_id": servicio["propiedad_id"],
+                "empresa": servicio.get("compania"),
+                "tipo_servicio": servicio.get("tipo_servicio"),
+                "deuda": 0,
                 "exito": False,
-                "error": str(e)
+                "error": str(e),
+                "consulta_id": consulta_id
             }
 
     async def procesar_propiedad(self, propiedad_id: int) -> List[Dict]:

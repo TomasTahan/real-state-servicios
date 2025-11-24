@@ -1,0 +1,1 @@
+- No crees documentos de resumen a menos de que yo explicitamente te lo pida. Si dime un resumen de la implementacion o la propuesta lo mas eficiente posible que puedas y solo mostrando texto, nada de código.
