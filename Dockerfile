@@ -31,8 +31,11 @@ RUN uv sync --frozen --no-dev
 # Copiar el resto del código
 COPY . .
 
+# Dar permisos de ejecución al script de inicio
+RUN chmod +x start.sh
+
 # Exponer puerto
 EXPOSE 8000
 
-# Comando para iniciar la aplicación con uvicorn directamente
-CMD ["uv", "run", "--no-sync", "uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
+# Comando para iniciar la aplicación
+CMD ["uv", "run", "--no-sync", "./start.sh"]
