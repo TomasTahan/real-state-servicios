@@ -194,10 +194,14 @@ async def listar_servicios_propiedad(propiedad_id: int):
 if __name__ == "__main__":
     import uvicorn
     from config import settings
+    import os
+
+    # Usar reload solo en desarrollo local
+    is_dev = os.getenv("ENV", "production") == "development"
 
     uvicorn.run(
         "api:app",
         host=settings.API_HOST,
         port=settings.API_PORT,
-        reload=True
+        reload=is_dev
     )
